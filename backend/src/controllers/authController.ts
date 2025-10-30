@@ -9,6 +9,8 @@ import bcrypt from "bcrypt";
 
 import {z} from "zod"
 
+//using the identation and style from fastify's typescript docs
+// https://fastify.dev/docs/latest/Reference/TypeScript/
 export const loginUser = async(
     request: FastifyRequest<{
         Body: LoginBody; 

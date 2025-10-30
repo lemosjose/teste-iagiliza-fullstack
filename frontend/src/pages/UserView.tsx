@@ -1,13 +1,63 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from "@/components/ui/card"
 
-import { Input,  } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+
+import UserUpdateCard from "@/components/userCard";
+
+import { getUserData } from "@/axios/fetch"
+
+import BreadcrumbMenu from "@/components/breadcrumb-custom";
+import { patchUserName, patchUserEmail } from "@/axios/update";
 
 const UserView = () => {
+
+    const [name, setName] = useState<string>("")
+    const [ email, setEmail ] = useState<string>("")
+
+    const [currentName, setCurrentName] = useState<string>("")
+    const [currentEmail, setCurrentEmail] = useState<string>("")
+
+    const handleSubmitName = async() => {
+        try{ 
+            await patchUserName({name})
+            setCurrentName(name)
+            setName("")
+        } catch (error){
+            console.error("Erro ao atualizar seu usuário: ", error)
+        }
+    }
+
+    const handleSubmitEmail = async() => {
+        try {
+            await patchUserEmail({ email })
+            setCurrentEmail(email)
+            setEmail("")
+        } catch (err) {
+            console.error('Error updating email:', err)
+        }
+    }
+
+    useEffect(() => {
+        const fetchUserData = async () => { 
+            try{
+                const data = await getUserData()
+                setCurrentEmail(data.email)
+                setCurrentName(data.name)
+            } catch(error) {
+                console.error("Erro ao adquirir informações do seu usuário", error)
+            }
+        }
+
+        fetchUserData()
+        
+    }, [])
     return ( 
         <div className="bg-muted flex min-h-svh flex-col items-center justify-start p-6 md:p-10">
+            <header className=" flex justify-center align-center w-full mb-8">
+                <div className="w-full max-w-sm text-center">
+                    <BreadcrumbMenu />
+                </div>
+            </header>
             <div className="w-full max-w-sm md:max-w-4xl">
                 <Tabs defaultValue="user" className="w-[400px]">
                     <TabsList>
@@ -15,50 +65,31 @@ const UserView = () => {
                         <TabsTrigger value="email">Mudar Email</TabsTrigger>
                     </TabsList>
                     <TabsContent value="user">
-                        <Card>
-                            <CardHeader>
-                            <CardTitle>Conta</CardTitle>
-                            <CardDescription>
-                                Detalhes atuais da sua conta:         
-                            </CardDescription>
-                            </CardHeader>
-                            <CardContent className="grid gap-6">
-                            <div className="grid gap-3">
-                                <Label htmlFor="tabs-demo-name">Usuario Atual: </Label>
-                                <p className="blue">Teste</p>
-                            </div>
-                            <div className="grid gap-3">
-                                <Label htmlFor="tabs-demo-username">Username Novo</Label>
-                                <Input defaultValue="" />
-                            </div>
-                            </CardContent>
-                            <CardFooter>
-                            <Button>Atualizar</Button>
-                            </CardFooter>
-                        </Card>
+                        <UserUpdateCard
+                            title="Conta"
+                            description="Detalhes atuais da sua conta:"
+                            currentLabel="Usuario Atual:"
+                            currentValue={currentName}
+                            newLabel="Username Novo"
+                            newValue={name}
+                            onNewValueChange={setName}
+                            onSubmit={handleSubmitName}
+                            placeholder="exemplo: Coxinha"
+                        />
                     </TabsContent>
                     <TabsContent value="email">
-                        <Card>
-                            <CardHeader>
-                            <CardTitle>Conta</CardTitle>
-                            <CardDescription>
-                                Detalhes atuais da sua conta:         
-                            </CardDescription>
-                            </CardHeader>
-                            <CardContent className="grid gap-6">
-                            <div className="grid gap-3">
-                                <Label htmlFor="tabs-demo-name">Email Atual</Label>
-                                <p>Teste</p>
-                            </div>
-                            <div className="grid gap-3">
-                                <Label htmlFor="tabs-demo-username">Email Novo</Label>
-                                <Input defaultValue="exemplo: Repente@gmail.com" />
-                            </div>
-                            </CardContent>
-                            <CardFooter>
-                            <Button>Atualizar</Button>
-                            </CardFooter>
-                        </Card>
+                        <UserUpdateCard
+                            title="Conta"
+                            description="Detalhes atuais da sua conta:"
+                            currentLabel="Email Atual"
+                            currentValue={currentEmail}
+                            newLabel="Email Novo"
+                            newValue={email}
+                            onNewValueChange={setEmail}
+                            onSubmit={handleSubmitEmail}
+                            placeholder="exemplo: Repente@gmail.com"
+                            inputType="email"
+                        />
                     </TabsContent>
                 </Tabs>
             </div>

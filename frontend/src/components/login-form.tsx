@@ -18,6 +18,8 @@ import { Alert,
   AlertDescription
  } from "./ui/alert"
 
+
+ //i prefer to use <div> directly on the function, but this component comes directly from ui.shadcn so i decided to keep it as it is
 export function LoginForm({
   className,
   ...props

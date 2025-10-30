@@ -13,4 +13,6 @@ export const loginSchema = z.object({
     password: z.string().min(8), 
 })
 
-export const messageSchema = z.object({})
+export const messageSchema = z.object({
+    content: z.string(),
+})

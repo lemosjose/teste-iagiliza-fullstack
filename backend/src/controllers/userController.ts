@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { RegisterBody, RegisterReply, ErrorReply } from "../types/user.types.js";
+import type { RegisterBody, RegisterReply, UpdateNameRoute ,ErrorReply, UpdateEmailRoute} from "../types/user.types.js";
 import { z } from "zod"
 
 import { prisma } from "../lib/prisma.js"
@@ -53,6 +53,88 @@ export const registerUser = async (
         })
     }
 };
+
+export const getMyUser = async(
+    request: FastifyRequest, 
+    reply: FastifyReply
+) => {
+    try{ 
+
+        await request.jwtVerify()
+
+
+
+        const userId = request.user.id; 
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId}, 
+
+            select: {
+                name: true,
+                email: true,
+            }
+        })
+
+        if(!user){
+            return reply.code(404).send({ error: "Usuario não existe"})
+        }
+
+        return reply.code(200).send(user)
+
+    } catch (error) { 
+        return reply.code(500).send({ error: "Erro no servidor"})
+    }
+}
+
+export const updateMyName = async(
+    request: FastifyRequest<UpdateNameRoute>, 
+    reply: FastifyReply
+)=> { 
+    try{ 
+        await request.jwtVerify(); 
+
+        const { name } = request.body;
+
+        const userId = request.user.id; 
+
+        const user = await prisma.user.update({
+            where: { id: userId},
+
+            data: {
+                name: name
+            }
+        })
+
+        return reply.code(200).send("Usuário atualizado!")
+    }catch (error){
+        return reply.code(500);
+    }
+}
+
+export const updateMyEmail= async(
+    request: FastifyRequest<UpdateEmailRoute>, 
+    reply: FastifyReply
+)=> { 
+    try{ 
+        await request.jwtVerify(); 
+
+        const { email } = request.body;
+
+        const userId = request.user.id; 
+
+        const user = await prisma.user.update({
+            where: { id: userId},
+
+            data: {
+                email: email
+            }
+        })
+
+        return reply.code(200).send("Email para o seu Usuário atualizado!")
+    }catch (error){
+        return reply.code(500);
+    }
+}
 
 //DOING/TODO 
 // /me request from the specs

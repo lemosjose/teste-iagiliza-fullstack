@@ -1,5 +1,7 @@
 #ignoring local build files
 
+#move everything to the sample env
+.env
 dist/*
 node_modules/
 src/prisma-dist/

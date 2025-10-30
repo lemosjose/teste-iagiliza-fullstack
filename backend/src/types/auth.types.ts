@@ -12,7 +12,7 @@ export type LoginReply = { token: string }
 
 // so it nows what to search when looking for a user that sent a message
 declare module '@fastify/jwt' { 
-    interface FastfifyJWT {
+    interface FastifyJWT {
         user: { 
             id: string;
             name: string;
