@@ -1,0 +1,72 @@
+services:
+  frontend:
+    container_name: frontend-roboed
+    restart: unless-stopped 
+
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      #Prod: 
+      #ARGS: VITE_API_URL=http://<full_vps_ip>:<port> #uncomment for prod build
+
+    ports:
+      - "80:80"
+
+    networks:
+      - roboed
+
+  backend:
+    container_name: backend-roboed
+    restart: unless-stopped
+
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports: 
+      - "8080:8080"
+
+    env_file: ./sample/sample.backend.env
+
+    depends_on:
+      psql:
+        condition: service_healthy
+
+    #you wont need to run prisma' migrations manually
+    command: sh -c "pnpm exec prisma db push && pnpm run start"
+
+    networks:
+      - roboed
+
+    
+
+  psql: 
+    container_name: postgresql-roboed
+    image: postgres:15.3-alpine
+    restart: unless-stopped
+    ports:
+        - "5432:5432"
+    networks:
+      - roboed
+
+    healthcheck: 
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - psql_data:/var/lib/postgresql/data
+
+    env_file: ./sample/sample.env
+
+    command: postgres -c listen_addresses='*'
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  roboed:
+    driver: bridge
+
+volumes:
+  psql_data: {}

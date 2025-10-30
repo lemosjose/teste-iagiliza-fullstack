@@ -1,0 +1,39 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js", 
+    "start:dev": "node src/index.js"
+  },
+  "compilerOptions": {
+    "module": "ESNext"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3",
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.1.0",
+    "@fastify/env": "^5.0.3",
+    "@fastify/jwt": "^10.0.0",
+    "@google/genai": "^1.27.0",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^6.18.0",
+    "@types/node": "^24.9.1",
+    "bcrypt": "^6.0.0",
+    "fastify": "^5.6.1",
+    "prisma": "^6.18.0",
+    "typescript": "^5.9.3",
+    "zod": "^4.1.12"
+  },
+  "type": "module",
+  "types": "src/index.d.ts",
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0"
+  }
+}

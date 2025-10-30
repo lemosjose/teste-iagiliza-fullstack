@@ -1,0 +1,38 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client { 
+  provider = "prisma-client-js"
+}
+
+enum MessageRole { 
+  USER 
+  AI
+}
+
+model User { 
+//i wanted to keep track of something like ObjectId or _id, on mongodb atlas and similar
+//
+    id String @id @default(uuid()) @db.Uuid
+    name String 
+    email String @unique
+    password String 
+    // keep track of put requests
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    messages Message[]
+}
+
+model Message{ 
+    id String @id @default(uuid()) @db.Uuid
+    content String 
+    createdAt DateTime @default(now())
+    userId String @db.Uuid
+
+    // keep track of who sent it 
+    role MessageRole
+    user User @relation(fields: [userId], references: [id])
+}

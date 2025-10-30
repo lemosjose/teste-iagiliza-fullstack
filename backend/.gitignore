@@ -1,0 +1,5 @@
+#ignoring local build files
+
+dist/*
+node_modules/
+src/prisma-dist/
