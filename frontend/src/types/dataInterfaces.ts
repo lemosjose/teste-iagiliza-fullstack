@@ -16,8 +16,7 @@ export interface userProfile {
     email: string;
 }
 
-export interface MESSAGE { 
-    role: string; 
+export interface messageData { 
     content: string
 }
 
@@ -28,3 +27,5 @@ export interface updateUserName {
 export interface updateUserEmail { 
     email: string,
 }
+
+

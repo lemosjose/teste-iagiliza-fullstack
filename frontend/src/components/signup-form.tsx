@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 
 import { useState } from "react"
 
-import { registerUser } from "@/axios/axios"
+import { registerUser } from "@/axios/post"
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert"
 
 //this is signup-01 from ui.shadcn, imported and changed to match informations from the api

@@ -25,7 +25,8 @@ services:
     ports: 
       - "8080:8080"
 
-    env_file: ./sample/sample.backend.env
+    #this one is gitignore'd! use the sample, add the GEMINI_API_KEY and run it
+    env_file: ./backend/.env
 
     depends_on:
       psql:

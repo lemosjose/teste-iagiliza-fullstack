@@ -1,43 +1,17 @@
 import axios, { isAxiosError } from "axios";
-import type { userData, loginData } from "@/types/dataInterfaces";
-//necessary for changing stuff in production 
-export const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+import type { loginData } from "@/types/dataInterfaces";
+
+//"axios.ts" cuz the instance is here.
+
+//axios instance and basic functions that are not related to any operation in specific that returns data
 
 export const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
+    //change that for your ip in case of production use
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
     timeout: 10000,
     headers: { 'Content-Type': "application/json" },
 }
 )
-
-export const registerUser = async (userData: userData): Promise<void> => {
-    try {
-        const reponse = await axiosInstance.post('/register', {
-            //mapping like the prisma schema
-            name: userData.name,
-            email: userData.email,
-            password: userData.password
-        }
-        )
-
-        return reponse.data
-    } catch (error) {
-        if (isAxiosError(error)) {
-            if (error.response) {
-                let apiErrorMessage = error.response.data?.message || "Ocorreu um erro";
-                console.error('Erro da API:', error.response.data)
-                throw new Error(apiErrorMessage)
-            }
-            else {
-                console.error("Não foi possível obter uma resposta", error.message);
-                throw new Error("Não conseguimos realizar a requisição")
-            }
-        }
-
-        console.error("Erro desconhecido", error);
-        throw new Error("Desconhecido");
-    }
-}
 
 export const loginUser = async (loginData: loginData): Promise<{ token: string }> => {
     try {

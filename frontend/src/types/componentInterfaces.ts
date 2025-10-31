@@ -11,3 +11,15 @@ export interface UserUpdateCardProps {
   inputType?: string
   isLoading?: boolean
 }
+
+export type MessageCard = { 
+  content: string; 
+  //from the enum in schema.prisma, remember?
+  role: 'USER' | 'AI';
+}
+
+export type MessageListProps = {
+  messages: MessageCard[];
+  isLoading: boolean;
+  error: string | null;
+}

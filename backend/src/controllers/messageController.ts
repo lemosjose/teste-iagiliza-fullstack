@@ -58,7 +58,7 @@ export const sendMessage = async (
         });
 
         //the user should not get anything in case the message is successful, just a reply
-        return reply.code(200).send();
+        return reply.code(200).send(aiContent);
 
 
     }catch (error){
@@ -84,6 +84,9 @@ export const getMessages = async(
         const messages = await prisma.message.findMany({
             where: { userId: userId},
 
+            orderBy: { 
+                createdAt: 'asc',
+            },
             select: {
                 content: true,
                 role: true,
