@@ -58,7 +58,7 @@ services:
     volumes:
       - psql_data:/var/lib/postgresql/data
 
-    env_file: ./sample/sample.env
+    env_file: ./backend/.env
 
     command: postgres -c listen_addresses='*'
     logging:
