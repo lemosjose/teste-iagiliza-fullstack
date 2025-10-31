@@ -35,14 +35,20 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [success, setSuccess ] = useState<string>("")
 
   const handleSubmit = async(e: React.FormEvent) => { 
+
+    e.preventDefault();
+
     e.preventDefault();
 
     setError("")
     setSuccess("")
 
     try{
+
       const payload = {name, email, password }
+
       await registerUser(payload)
+
 
       setSuccess("Conta Criada!")
 
@@ -50,8 +56,16 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       setName("");
       setEmail("");
       setPassword("");
+
+      // there is more error handling through axios already
     } catch (err: any) { 
-      setError(err?.message ?? "Ocorreu um erro ao criar sua conta")
+      console.log("=== ERRO CAPTURADO ===");
+      console.log("Tipo:", typeof err);
+      console.log("Erro completo:", err);
+      console.log("err.message:", (err as any)?.message);
+      console.log("É instância de Error?", err instanceof Error);
+      console.log("===================");
+       setError(err?.message || "Ocorreu um erro ao criar sua conta");
     }
   }
 
@@ -71,12 +85,12 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
         </Alert> 
       )}
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive" className="mb-4"> {/* <-- Remova o bg-red-100 por enquanto */}
           <AlertTitle>Erro</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} method="post">
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="name">Usuário</FieldLabel>
@@ -117,7 +131,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
             </Field>
             <FieldGroup>
               <Field>
-                <Button type="submit">Create Account</Button>
+                <Button type="submit">Criar Usuário</Button>
                 <FieldDescription className="px-6 text-center">
                   Já possui conta em nosso sistema? <a href="/login">Faça Seu Login</a>
                 </FieldDescription>

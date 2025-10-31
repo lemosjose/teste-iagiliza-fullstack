@@ -47,7 +47,7 @@ export const patchUserEmail = async(updateUserData: updateUserEmail): Promise<vo
 
 
         const response = await axiosInstance.patch(
-            '/me/updateEmail', 
+            '/me', 
             { 
                 email: updateUserData.email,
             },

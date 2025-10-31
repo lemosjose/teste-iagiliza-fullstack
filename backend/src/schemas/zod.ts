@@ -15,4 +15,5 @@ export const loginSchema = z.object({
 
 export const messageSchema = z.object({
     content: z.string(),
+    chatId: z.uuid().optional()
 })

@@ -70,3 +70,6 @@ export const authenticate = async (
         return reply.code(401).send({ error: "Não autorizado, faça login" });
     }
 };
+
+//logout only in fthe front-end for now 
+

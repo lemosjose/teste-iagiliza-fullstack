@@ -8,9 +8,9 @@ import { authenticate, loginUser } from './controllers/authController.js';
 import { getMessages, sendMessage } from './controllers/messageController.js';
 
 
-import type { MessageRoute } from './types/message.types.js';
-
-import answerUser from './services/aigen.js';
+import type { GetMessagesRoute, MessageRoute } from './types/message.types.js';
+import { createChat, getChats } from './controllers/chatController.js';
+import type { createChatRoute } from './types/chat.types.js';
 
 const server = fastify({
   logger: true
@@ -38,7 +38,7 @@ await server.register(fastifyEnv, {
 //jwt_secret cannot be other thing than a string, type assertion
 const JWT_SECRET: string = process.env.JWT_SECRET!;
 
-
+//change that in prod, do NOT allow any origin and any method.
 await server.register(cors, {
   origin: ["*"], 
   //sincei it's still in development, some methods can lay around here for now while testing
@@ -81,10 +81,14 @@ server.get("/me", { preHandler: [authenticate]} ,getMyUser);
 
 server.patch("/me/updateName", { preHandler: [authenticate]}, updateMyName);
 
-server.patch("/me/updateEmail", { preHandler: [authenticate]}, updateMyEmail);
+server.patch("/me", { preHandler: [authenticate]}, updateMyEmail);
 
 server.post<MessageRoute>("/message", { preHandler: [authenticate]}, sendMessage);
 
-server.get("/messages", {preHandler: [authenticate]}, getMessages);
+server.get<GetMessagesRoute>("/messages", {preHandler: [authenticate]}, getMessages);
+
+server.post<createChatRoute>("/chat", { preHandler: authenticate}, createChat);
+
+server.get("/chats", {preHandler: authenticate}, getChats)
 
 start()

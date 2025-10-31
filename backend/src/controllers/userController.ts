@@ -25,6 +25,12 @@ export const registerUser = async (
             where: {email: userData.email}
         }); 
 
+        if(isRegistered){ 
+            return reply.code(409).send({
+                error: "Email já cadastrado"
+            })
+        }
+
         //important note = bcrypt.hash() returns a Promise object for the hash operation and thus cannot be typed directly as a string 
         const cloak = await bcrypt.hash(userData.password, 10);
 
@@ -82,7 +88,7 @@ export const getMyUser = async(
         return reply.code(200).send(user)
 
     } catch (error) { 
-        return reply.code(500).send({ error: "Erro no servidor"})
+        return reply.code(500).send({ error: "Não é possível acessar esse recurso"})
     }
 }
 
@@ -107,7 +113,7 @@ export const updateMyName = async(
 
         return reply.code(200).send("Usuário atualizado!")
     }catch (error){
-        return reply.code(500);
+        return reply.code(500).send("Não autorizado!");
     }
 }
 

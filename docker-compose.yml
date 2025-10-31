@@ -7,8 +7,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       #Prod: 
+      # this needs 
       #ARGS: VITE_API_URL=http://<full_vps_ip>:<port> #uncomment for prod build
-
+      # or a .env with the vps IP 
     ports:
       - "80:80"
 

@@ -29,6 +29,9 @@ importers:
       '@prisma/client':
         specifier: ^6.18.0
         version: 6.18.0(prisma@6.18.0(typescript@5.9.3))(typescript@5.9.3)
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -38,6 +41,9 @@ importers:
       prisma:
         specifier: ^6.18.0
         version: 6.18.0(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -45,12 +51,6 @@ importers:
       '@types/bcrypt':
         specifier: ^6.0.0
         version: 6.0.0
-      '@types/node':
-        specifier: ^24.9.1
-        version: 24.9.1
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
 
 packages:
 

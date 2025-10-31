@@ -10,6 +10,8 @@ generator client {
 enum MessageRole { 
   USER 
   AI
+  //just in case
+  SYSTEM
 }
 
 model User { 
@@ -23,16 +25,33 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    messages Message[]
+    chats     Chat[]
 }
 
 model Message{ 
     id String @id @default(uuid()) @db.Uuid
     content String 
     createdAt DateTime @default(now())
-    userId String @db.Uuid
+    chatId    String      @db.Uuid
 
     // keep track of who sent it 
     role MessageRole
-    user User @relation(fields: [userId], references: [id])
+
+    chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+    @@index([chatId])
 }
+
+model Chat {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String?  // optional title for the chat
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @db.Uuid
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  
+  @@index([userId])
+}
+

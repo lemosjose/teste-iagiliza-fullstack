@@ -4,18 +4,38 @@ import Chat from "./pages/Chat"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import UserView from "./pages/UserView"
+import ProtectedRoute from "./pages/Protected"
+
+import { ThemeProvider } from "./components/dark-mode/provider"
+import { ModeToggle } from "./components/dark-mode/toggle"
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/messages" element={<Chat />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/me" element={<UserView />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <ModeToggle />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+
+          <Route path="/messages" element={
+            <ProtectedRoute> 
+              <Chat />
+            </ProtectedRoute>
+          }
+          />
+
+          <Route path="/register" element={<Register />} />
+
+          <Route path="/me" element={
+            <ProtectedRoute>
+              <UserView />
+            </ProtectedRoute>
+          } />
+
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 

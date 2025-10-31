@@ -1,127 +1,232 @@
 import BreadcrumbMenu from "@/components/breadcrumb-custom";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-// --- CORREÇÃO DE IMPORTAÇÃO ---
-// Você precisa importar o 'postMessage' também
-import { getMessages } from "@/axios/fetch";
-
-import { postMessage } from "@/axios/post";
-
 import { Input } from "@/components/ui/input";
 import { MessageList } from "@/components/messages";
-
-import type { MessageCard } from "@/types/componentInterfaces";
-
-import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
+import { getMessages, getChats } from "@/axios/fetch";
+import { postMessage, createChat } from "@/axios/post";
+import type { ChatInfo } from "@/types/dataInterfaces";
+
+import type { MessageCard } from "@/types/componentInterfaces";
+import { useEffect, useState, useRef } from "react";
+
+// yeah, that one fetches a lot of data, so useEffect( ) and handles are huge.
+// sorry.
+
 const Chat = () => {
+
+///state management
+  const [chats, setChats] = useState<ChatInfo[]>([]); 
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [activeChatTitle, setActiveChatTitle] = useState<string>("Carregando...");
+
   const [messages, setMessages] = useState<MessageCard[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true); 
+  const [isChatListLoading, setIsChatListLoading] = useState(true); 
+  const [isSendingMessage, setIsSendingMessage] = useState(false); 
+  
   const [error, setError] = useState<string | null>(null);
-
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const fetchMessages = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await getMessages();
-      setMessages(data);
-    } catch (err) {
-      // Mostra a mensagem de erro real da API
-      if (err instanceof Error) {
-        setError(err.message || 'Erro ao buscar mensagens');
-      } else {
-        setError('Erro ao buscar mensagens');
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsLoadingMessages(true);
+      setIsChatListLoading(true);
+      setError(null);
+      
+      try {
+
+        const initialData = await getMessages(null);
+        setMessages(initialData.messages);
+        setActiveChatId(initialData.chat.id);
+        setActiveChatTitle(initialData.chat.title || "Novo Chat");
+
+   
+        const chatList = await getChats();
+        setChats(chatList);
+        
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message || 'Erro ao carregar dados');
+        } else {
+          setError('Erro desconhecido');
+        }
+      } finally {
+        setIsLoadingMessages(false);
+        setIsChatListLoading(false);
       }
+    };
+    
+    fetchInitialData();
+  }, []); 
+
+  const handleSwitchChat = async (chatId: string) => {
+
+    if (chatId === activeChatId || isLoadingMessages) return;
+
+    setIsLoadingMessages(true);
+    setError(null);
+    setMessages([]); 
+    setActiveChatId(chatId); 
+
+    try {
+      const data = await getMessages(chatId);
+      setMessages(data.messages);
+      setActiveChatTitle(data.chat.title || "Chat");
+    } catch (err) {
+      setError("Erro ao carregar este chat.");
     } finally {
-      setIsLoading(false);
+      setIsLoadingMessages(false);
     }
   };
-
-  useEffect(() => { 
-    fetchMessages();
-  }, []);
 
 
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollElement) {
-        scrollElement.scrollTo(0, scrollElement.scrollHeight);
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTo(0, viewport.scrollHeight);
       }
     }
-  }, [messages, isLoading]); 
+  }, [messages, isSendingMessage]); 
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isSendingMessage || isLoadingMessages) return;
 
     const userMessageContent = newMessage;
     setNewMessage('');
-
-    setIsLoading(true);
+    setIsSendingMessage(true);
     setError(null);
 
-
+   
     setMessages(prev => [...prev, { content: userMessageContent, role: 'USER' }]);
 
     try {
 
-      await postMessage({ content: userMessageContent });
+      const response = await postMessage({ 
+        content: userMessageContent,
+        chatId: activeChatId || null 
+      });
 
-      await fetchMessages();
+      setMessages(prev => [...prev, { content: response.aiContent, role: 'AI' }]);
+      
+
+      if (activeChatId === null) {
+        setActiveChatId(response.chatId);
+      }
+      
+
 
     } catch (err) {
-        let errorMessage = 'Erro ao enviar mensagem';
-        if (err instanceof Error) {
-            errorMessage = err.message;
-        }
-        setError(errorMessage);
+      setError('Erro ao enviar mensagem');
 
-        setMessages(prev => prev.filter(msg => msg.content !== userMessageContent && msg.role === 'USER'));
+      setMessages(prev => prev.filter(msg => msg.content !== userMessageContent));
     } finally {
-
-        setIsLoading(false);
+      setIsSendingMessage(false);
     }
   };
 
+
+  const handleNewChat = async () => {
+
+    if (isSendingMessage || isLoadingMessages) return;
+
+    setIsLoadingMessages(true);
+    setMessages([]); 
+    setError(null);
+    
+    try {
+
+      const newChat = await createChat({}); 
+
+      const newChatInfo: ChatInfo = {
+        ...newChat, 
+        _count: { messages: 0}
+      }
+      
+      setChats(prevChats => [newChatInfo, ...prevChats]); 
+      setActiveChatId(newChat.id);
+      setActiveChatTitle(newChat.title || "Novo Chat");
+    } catch (err) {
+      setError("Erro ao criar novo chat.");
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  // mimic chatGpt Interface
   return (
-    <div className="bg-muted flex min-h-svh flex-col p-6 md:p-10">
-      <header className="flex justify-center">
-        <BreadcrumbMenu />
-      </header>
-      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance mb-4">
-        Página de Chat
-      </h1> 
+
+    <div className="grid h-svh w-full grid-cols-[260px_1fr] bg-black">
+      
+
+      <aside className="flex flex-col border-r bg-black p-4">
+        <header className="flex justify-center mb-4">
+          <BreadcrumbMenu />
+        </header>
+
+        <Button onClick={handleNewChat} className="mb-4">
+          + Novo Chat
+        </Button>
+
+        <ScrollArea className="flex-1">
+          <nav className="flex flex-col space-y-2">
+            {isChatListLoading && <p className="text-sm text-muted-foreground">Carregando chats...</p>}
+            {chats.map((chat) => (
+              <Button
+                key={chat.id}
+                variant={chat.id === activeChatId ? "secondary" : "ghost"}
+                className="justify-start truncate"
+                onClick={() => handleSwitchChat(chat.id)}
+                disabled={isLoadingMessages} 
+              >
+                {chat.title || "Chat sem título"}
+              </Button>
+            ))}
+          </nav>
+        </ScrollArea>
+      </aside>
 
 
-      <ScrollArea className="flex-1 border rounded-md p-4 mb-4" ref={scrollAreaRef}>
+      <main className="flex min-h-svh flex-col p-6 md:p-10">
+        <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance mb-4">
+          {activeChatTitle}
+        </h1>
 
-        <div className="flex flex-col space-y-4">
-          <MessageList 
-            messages={messages}
-            isLoading={isLoading}
-            error={error}
-          />
-        </div>
-      </ScrollArea>
+        <ScrollArea className="flex-1 border rounded-md p-4 mb-4" ref={scrollAreaRef}>
+          <div className="flex flex-col space-y-4">
+            <MessageList 
+              messages={messages}
+              isLoading={isLoadingMessages}
+              error={error}
+            />
 
+            {isSendingMessage && (
+              <div className="text-sm text-muted-foreground italic pl-2">
+                IA está digitando...
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
-      <form onSubmit={handleSendMessage} className="flex space-x-2">
+        <form onSubmit={handleSendMessage} className="flex space-x-2">
           <Input 
             type="text" 
             placeholder="Digite sua mensagem" 
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            disabled={isLoading}
+            disabled={isSendingMessage || isLoadingMessages}
           />
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Enviando...' : 'Enviar'}
+          <Button type="submit" disabled={isSendingMessage || isLoadingMessages}>
+            {isSendingMessage ? 'Enviando...' : 'Enviar'}
           </Button>
-      </form>
+        </form>
+      </main>
     </div>
   );
 };

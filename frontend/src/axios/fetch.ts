@@ -2,7 +2,8 @@ import { axiosInstance } from "./axios";
 
 import { isAxiosError } from "axios";
 
-import type { MessageCard } from "@/types/componentInterfaces";
+import type { ChatInfo } from "@/types/dataInterfaces";
+import type { GetMessagesResponse } from "@/types/dataInterfaces";
 
 export const getUserData = async(): Promise<{ name: string, email: string}> => { 
     try{ 
@@ -36,7 +37,7 @@ export const getUserData = async(): Promise<{ name: string, email: string}> => {
     }
 }
 
-export const getMessages = async(): Promise<MessageCard[]> => { 
+export const getMessages = async(chatId: string | null): Promise<GetMessagesResponse> => { 
     try{
         const token = localStorage.getItem("authToken"); 
 
@@ -48,7 +49,9 @@ export const getMessages = async(): Promise<MessageCard[]> => {
             headers: { 
                 Authorization: `Bearer ${token}`,
                 'Cache-Control': 'no-cache'
-            }
+            },
+
+            params: chatId? { chatId }: {}
         })
 
         return response.data;
@@ -61,5 +64,29 @@ export const getMessages = async(): Promise<MessageCard[]> => {
             }
 
             throw new Error("Erro desconhecido")
+    }
+}
+
+export const getChats = async (): Promise<ChatInfo[]> => {
+    try{ 
+        const token = localStorage.getItem("authToken")
+        if(!token){
+            throw new Error("Não autorizado!")
+        }
+
+        const response = await axiosInstance.get('/chats', { 
+            headers: { 
+                Authorization: `Bearer ${token}`,
+                'Cache-Control': 'no-cache'
+            },
+        })
+        
+        return response.data
+    } catch(error){
+        if(isAxiosError(error)){ 
+            console.error("Erro na comunicação com a API", error.response?.data || error.message)
+            throw error.response?.data || new Error("Não foi possível buscar seus chats na API")
+        }
+        throw new Error("Erro desconhecido")
     }
 }

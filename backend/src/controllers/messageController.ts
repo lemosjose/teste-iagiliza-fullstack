@@ -28,37 +28,55 @@ export const sendMessage = async (
 
         const userId = request.user.id;
 
-        const messageData = messageSchema.parse(request.body)
+        const messageData = messageSchema.parse(request.body);
+
+        let chatId = messageData.chatId; 
+
+        if(!chatId){ 
+            const latestChat = await prisma.chat.findFirst({
+                where: {userId},
+                orderBy: {updatedAt: 'desc'}
+            })
+
+            if(latestChat){ 
+                chatId = latestChat.id; 
+            } else { 
+                const newChat = await prisma.chat.create({ 
+                    data: { 
+                        userId,
+                        title: "Conversa 1"
+                    }
+                }); 
+                chatId = newChat.id
+            }
+        };
 
         const userMessage = await prisma.message.create({ 
             data: { 
                 content: messageData.content, 
                 role: "USER", 
-                user: { 
-                    connect: { 
-                        id: userId
-                    }
-                }
+                chatId
             }
-        })
+        });
 
         //gets Morpheus to answer 
         const aiContent = await answerUser(userMessage.content) || "A função da IA retornou um erro, verifique seu login ou seu ambiente"; 
+
+        // currently not inserting the aiResponses misc answer, can be done if someone does not know how to use a gemini_api_key
 
         const aiMessage = await prisma.message.create({ // <-- NOVO
             data: {
                 content: aiContent,
                 role: "AI", 
-                user: {
-                    connect: {
-                        id: userId // Vinculado ao mesmo usuário
-                    }
-                }
+                chatId
             }
         });
 
         //the user should not get anything in case the message is successful, just a reply
-        return reply.code(200).send(aiContent);
+        return reply.code(200).send({
+            aiContent, 
+            chatId
+        });
 
 
     }catch (error){
@@ -72,7 +90,10 @@ export const sendMessage = async (
 
 
 export const getMessages = async(
-    request: FastifyRequest, 
+    request: FastifyRequest<{
+        //optional just for getting it into index.ts
+        Querystring: { chatId?: string }
+    }>, 
     reply: FastifyReply
 ) => { 
     try{ 
@@ -80,20 +101,61 @@ export const getMessages = async(
         await request.jwtVerify();
 
         const userId = request.user.id;
+        let { chatId } = request.query;
+
+        if(!chatId){
+            const latestChat = await prisma.chat.findFirst({
+                where: {userId},
+                orderBy: {updatedAt: 'desc'},
+
+                select: {
+                    id: true, 
+                    title: true
+                }
+            })
+
+            if(latestChat){ 
+                chatId = latestChat.id; 
+            } else { 
+                const newChat = await prisma.chat.create({ 
+                    data: { 
+                        userId,
+                        title: "Conversa 1"
+                    }
+                }); 
+                chatId = newChat.id
+            }
+        };
+
+        const chat = await prisma.chat.findFirst({
+            where: { 
+                id: chatId, 
+                userId
+            }
+        })
+
+        if(!chat) { 
+            return reply.code(403).send({ error: "Chat não encontrado"});
+        }
 
         const messages = await prisma.message.findMany({
-            where: { userId: userId},
+            where: { chatId },
 
             orderBy: { 
                 createdAt: 'asc',
             },
             select: {
+                id: true, 
                 content: true,
                 role: true,
+                createdAt: true
             }
         })
 
-        return reply.code(200).send(messages);
+        return reply.code(200).send({
+            chat: chatId,
+            messages: messages
+        });
 
 
 
